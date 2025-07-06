@@ -6,6 +6,7 @@
 #include "qbb-net-device.h"
 #include "switch-mmu.h"
 #include "pint.h"
+#include "flow-routing.h"
 
 namespace ns3 {
 

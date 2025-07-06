@@ -11,6 +11,7 @@
 #include "ppp-header.h"
 #include "ns3/int-header.h"
 #include "ns3/simulator.h"
+#include "flow-routing.h"
 #include <cmath>
 
 namespace ns3 {
@@ -61,6 +62,27 @@ SwitchNode::SwitchNode(){
 }
 
 int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch){
+	// First check for custom flow routing
+	uint16_t src_port = 0, dst_port = 0;
+	if (ch.l3Prot == 0x6) {
+		src_port = ch.tcp.sport;
+		dst_port = ch.tcp.dport;
+	} else if (ch.l3Prot == 0x11) {
+		src_port = ch.udp.sport;
+		dst_port = ch.udp.dport;
+	} else if (ch.l3Prot == 0xFC || ch.l3Prot == 0xFD) {
+		src_port = ch.ack.sport;
+		dst_port = ch.ack.dport;
+	}
+	
+	FlowKey flow_key = ExtractFlowKeyFromPacket(ch.sip, ch.dip, ch.l3Prot, src_port, dst_port);
+	int custom_path = LookupFlowPath(flow_key);
+	if (custom_path >= 0) {
+		// std::cout << "Using custom switch path for flow " << std::endl;
+		return custom_path;  // Use custom path
+	}
+
+	// Fall back to ECMP routing
 	// look up entries
 	auto entry = m_rtTable.find(ch.dip);
 
@@ -106,6 +128,7 @@ void SwitchNode::CheckAndSendResume(uint32_t inDev, uint32_t qIndex){
 
 void SwitchNode::SendToDev(Ptr<Packet>p, CustomHeader &ch){
 	int idx = GetOutDev(p, ch);
+	
 	if (idx >= 0){
 		NS_ASSERT_MSG(m_devices[idx]->IsLinkUp(), "The routing table look up should return link that is up");
 
