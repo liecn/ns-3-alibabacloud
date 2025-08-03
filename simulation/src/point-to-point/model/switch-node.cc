@@ -74,15 +74,12 @@ int SwitchNode::GetOutDev(Ptr<const Packet> p, CustomHeader &ch){
 		src_port = ch.ack.sport;
 		dst_port = ch.ack.dport;
 	}
-	
-	FlowKey flow_key = ExtractFlowKeyFromPacket(ch.sip, ch.dip, ch.l3Prot, src_port, dst_port);
+	FlowKey flow_key = ExtractFlowKeyFromPacket(this->GetId(), ch.sip, ch.dip, ch.l3Prot, src_port, dst_port);
 	int custom_path = LookupFlowPath(flow_key);
 	if (custom_path >= 0) {
 		// std::cout << "Using custom switch path for flow " << std::endl;
 		return custom_path;  // Use custom path
 	}
-
-	// Fall back to ECMP routing
 	// look up entries
 	auto entry = m_rtTable.find(ch.dip);
 

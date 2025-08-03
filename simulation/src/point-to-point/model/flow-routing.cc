@@ -11,14 +11,16 @@ uint64_t custom_routing_misses = 0;
 uint64_t total_routing_lookups = 0;
 
 // Function to extract flow key from packet
-FlowKey ExtractFlowKeyFromPacket(uint32_t src_ip, uint32_t dst_ip, uint8_t protocol, 
+FlowKey ExtractFlowKeyFromPacket(uint16_t cur_node,
+                                 uint32_t src_ip, uint32_t dst_ip, uint8_t protocol,
                                  uint16_t src_port, uint16_t dst_port) {
     FlowKey key;
+    key.cur_node = cur_node;
     key.src_ip = src_ip;
     key.dst_ip = dst_ip;
-    key.protocol = protocol;
-    key.src_port = src_port;
-    key.dst_port = dst_port;
+    key.protocol = 0x11; // force UDP
+    key.src_port = 10006; // fixed port for routing decision
+    key.dst_port = 100;   // fixed dport
     return key;
 }
 
@@ -37,7 +39,6 @@ int LookupFlowPath(const FlowKey& flow_key) {
         return it->second;  // Return the next-hop interface
     }
     
-    // If no pre-calculated path, fall back to ECMP (same as NS3)
     custom_routing_misses++;
     return -1;  // No custom path found, fall back to ECMP
 }
@@ -63,11 +64,6 @@ void ResetRoutingStatistics() {
     custom_routing_hits = 0;
     custom_routing_misses = 0;
     total_routing_lookups = 0;
-}
-
-// Interface functions for frontend to backend communication
-void SetGlobalFlowMap(const std::unordered_map<FlowKey, uint32_t, FlowKeyHash>& flow_map) {
-    global_flow_to_path_map = flow_map;
 }
 
 void SetGlobalCustomRouting(bool enable) {
