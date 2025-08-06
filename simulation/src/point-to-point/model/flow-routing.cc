@@ -56,7 +56,6 @@ void PrintRoutingStatistics() {
     std::cout << "[CUSTOM ROUTING STATS] Custom routing hits: " << custom_routing_hits << std::endl;
     std::cout << "[CUSTOM ROUTING STATS] Custom routing misses: " << custom_routing_misses << std::endl;
     std::cout << "[CUSTOM ROUTING STATS] Custom routing hit rate: " << hit_rate << "%" << std::endl;
-    std::cout << "[CUSTOM ROUTING STATS] Flow map size: " << global_flow_to_path_map.size() << std::endl;
 }
 
 // Function to reset statistics
