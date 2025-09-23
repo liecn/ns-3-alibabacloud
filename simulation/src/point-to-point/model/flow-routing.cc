@@ -46,16 +46,16 @@ int LookupFlowPath(const FlowKey& flow_key) {
 // Function to print routing statistics
 void PrintRoutingStatistics() {
     if (total_routing_lookups == 0) {
-        std::cout << "[CUSTOM ROUTING STATS] No routing lookups performed" << std::endl;
+        std::cout << "[ROUTING STATS] No routing lookups performed" << std::endl;
         return;
     }
     
     double hit_rate = (double)custom_routing_hits / total_routing_lookups * 100.0;
     
-    std::cout << "[CUSTOM ROUTING STATS] Total lookups: " << total_routing_lookups << std::endl;
-    std::cout << "[CUSTOM ROUTING STATS] Custom routing hits: " << custom_routing_hits << std::endl;
-    std::cout << "[CUSTOM ROUTING STATS] Custom routing misses: " << custom_routing_misses << std::endl;
-    std::cout << "[CUSTOM ROUTING STATS] Custom routing hit rate: " << hit_rate << "%" << std::endl;
+    std::cout << "[ROUTING STATS] Total lookups: " << total_routing_lookups << std::endl;
+    std::cout << "[ROUTING STATS] Custom routing hits: " << custom_routing_hits << std::endl;
+    std::cout << "[ROUTING STATS] Custom routing misses: " << custom_routing_misses << std::endl;
+    std::cout << "[ROUTING STATS] Custom routing hit rate: " << hit_rate << "%" << std::endl;
 }
 
 // Function to reset statistics
