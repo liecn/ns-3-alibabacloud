@@ -13,6 +13,11 @@
 #include "switch-mmu.h"
 
 NS_LOG_COMPONENT_DEFINE("SwitchMmu");
+
+// Global counters for PFC/ECN events
+static uint64_t g_total_pfc_pauses = 0;
+static uint64_t g_total_ecn_marks = 0;
+
 namespace ns3 {
 	TypeId SwitchMmu::GetTypeId(void){
 		static TypeId tid = TypeId("ns3::SwitchMmu")
@@ -85,6 +90,14 @@ namespace ns3 {
 	}
 	void SwitchMmu::SetPause(uint32_t port, uint32_t qIndex){
 		paused[port][qIndex] = true;
+		g_total_pfc_pauses++;
+		
+		// Log first 10 PFC events for verification
+		if (g_total_pfc_pauses <= 10) {
+			std::cout << "[PFC] Switch " << node_id << " port " << port 
+			          << " queue " << qIndex << " PAUSED at " 
+			          << Simulator::Now().GetMicroSeconds() << " us" << std::endl;
+		}
 	}
 	void SwitchMmu::SetResume(uint32_t port, uint32_t qIndex){
 		paused[port][qIndex] = false;
@@ -100,8 +113,17 @@ namespace ns3 {
 	bool SwitchMmu::ShouldSendCN(uint32_t ifindex, uint32_t qIndex){
 		if (qIndex == 0)
 			return false;
-		if (egress_bytes[ifindex][qIndex] > kmax[ifindex])
+		if (egress_bytes[ifindex][qIndex] > kmax[ifindex]) {
+			g_total_ecn_marks++;
+			// Log first 10 ECN events for verification
+			if (g_total_ecn_marks <= 10) {
+				std::cout << "[ECN] Switch " << node_id << " port " << ifindex 
+				          << " queue " << qIndex << " MARKED (above KMAX=" << kmax[ifindex] 
+				          << " bytes, current=" << egress_bytes[ifindex][qIndex] << ") at " 
+				          << Simulator::Now().GetMicroSeconds() << " us" << std::endl;
+			}
 			return true;
+		}
 		if (egress_bytes[ifindex][qIndex] > kmin[ifindex]){
 			double p = pmax[ifindex] * double(egress_bytes[ifindex][qIndex] - kmin[ifindex]) / (kmax[ifindex] - kmin[ifindex]);
 			if (UniformVariable(0, 1).GetValue() < p)
